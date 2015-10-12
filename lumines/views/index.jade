@@ -1,5 +1,11 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  div(class="page-header")
+    h1(class="text-center") #{title}
+      small express
+  div(id="game_canvas")
+    canvas(id="canvas", width="640", height="480", style="border:1px solid #000000;")
+  script(type="text/javascript", src="/javascripts/model.js")
+  script(type="text/javascript", src="/javascripts/engine.js")
+  script(type="text/javascript", src="/javascripts/controller.js")
