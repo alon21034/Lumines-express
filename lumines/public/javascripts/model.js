@@ -4,6 +4,9 @@ var RAW = 12;
 var TYPE_RED = 1;
 var TYPE_BLUE = 2;
 var TYPE_EMPTY = 0;
+var TIMEOUT = 100;
+var HEIGHT_OFFSET = 90;
+var ONE_ROUND_TIME = 7200;
 
 var Game = function() {
 	this.reset();
@@ -12,6 +15,7 @@ var Game = function() {
 Game.prototype.reset = function() {
 	this.status = true;
 	this.map = new Map();
+	this.bar = new Bar();
 	this.timer = 0;
 	this.score = 0;
 }
@@ -29,23 +33,35 @@ Game.prototype.resume = function() {
 }
 
 Game.prototype.update = function(dt) {
+	this.map.update(dt);
+	this.bar.update(dt);
 	this.timer += dt;
+	if (this.timer >= 90000) {
+		this.gameOver(TIMEOUT);
+	}
 };
+
+Game.prototype.gameOver = function(type) {
+	console.log("gameover type: " + type);
+	console.log("score: " + this.score);
+	this.status = false;
+}
 
 Game.prototype.render = function() {
 	this.renderBackground();
 	this.renderScore();
 	this.renderTimer();
-	this.renderGrid();
+	this.renderBoard();
 }
 
 Game.prototype.renderBackground = function() {
 	ctx.fillStyle = "#EEEEEE";
-	ctx.fillRect(0,0,WIDTH * 16 + 60, WIDTH * 12 + 90);
+	ctx.fillRect(0,0,WIDTH * 16 + 60, WIDTH * 12 + HEIGHT_OFFSET);
 }
 
-Game.prototype.renderGrid = function() {
+Game.prototype.renderBoard = function() {
 	this.map.render();
+	this.bar.render();
 }
 
 Game.prototype.renderScore = function() {
@@ -63,13 +79,19 @@ Game.prototype.renderTimer = function() {
 }
 
 var Map = function() {
+	this.height = new Array(COLUMN);
 	this.grid = new Array(COLUMN);
 	for (var i = 0 ; i < COLUMN ; ++i) {
+		this.height[i] = 0;
 		this.grid[i] = new Array(RAW);
 		for (var j = 0 ; j < RAW ; ++j) {
 			this.grid[i][j] = TYPE_EMPTY;
 		}
 	}
+}
+
+Map.prototype.update = function() {
+
 }
 
 Map.prototype.render = function() {
@@ -82,11 +104,23 @@ Map.prototype.render = function() {
 			} else {
 				ctx.fillStyle = "#888888";
 			}
-			ctx.fillRect(i*WIDTH, 90 + j*WIDTH, WIDTH, WIDTH);
+			ctx.fillRect(i*WIDTH, HEIGHT_OFFSET + j*WIDTH, WIDTH, WIDTH);
 		}
 	}
 }
 
 var Bar = function() {
+	this.x = 0;
+}
 
+Bar.prototype.update = function(dt) {
+	this.x += dt * WIDTH * COLUMN / ONE_ROUND_TIME;
+	if (this.x > WIDTH * COLUMN) {
+		this.x -= WIDTH * COLUMN;
+	}
+}
+
+Bar.prototype.render = function() {
+	ctx.fillStyle = "#000000";
+	ctx.fillRect(this.x-1, HEIGHT_OFFSET, 2, WIDTH*RAW);
 }
