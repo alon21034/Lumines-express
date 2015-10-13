@@ -19,7 +19,6 @@ var Engine = (function(global) {
      * create the canvas element, grab the 2D context for that canvas
      * set the canvas elements height/width and add it to the DOM.
      */
-
     var div = document.getElementById("game_canvas"),
         win = global.window,
         canvas = document.getElementById('canvas'),
@@ -90,7 +89,7 @@ var Engine = (function(global) {
      * render methods.
      */
     function updateEntities(dt) {
-        game.updateFighters(dt);
+        
     }
 
     /* This function initially draws the "game level", it will then call
@@ -103,9 +102,7 @@ var Engine = (function(global) {
         /* This array holds the relative URL to the image used
          * for that particular row of the game level.
          */
-        game.renderBackground();
         renderEntities();
-        game.render()
     }
 
     /* This function is called by the render function and is called on each game
@@ -113,7 +110,7 @@ var Engine = (function(global) {
      * on your enemy and player entities within app.js
      */
     function renderEntities() {
-        game.renderFighters();
+    
     }
 
     /* This function does nothing but it could have been a good place to
@@ -128,11 +125,10 @@ var Engine = (function(global) {
      * draw our game level. Then set init as the callback method, so that when
      * all of these images are properly loaded our game will start.
      */
-    // Resources.load([
-    //     "./images/blue_20_20.png",
-    //     "./images/dark_orange_20_20.png"
-    // ]);
-    // Resources.onReady(init);
+    Resources.load([
+        "../images/d1353198.gif"
+    ]);
+    Resources.onReady(init);
 
     /* Assign the canvas' context object to the global variable (the window
      * object when run in a browser) so that developer's can use it more easily
