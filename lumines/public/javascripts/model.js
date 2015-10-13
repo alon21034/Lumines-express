@@ -6,7 +6,8 @@ var TYPE_BLUE = 2;
 var TYPE_EMPTY = 0;
 var TIMEOUT = 100;
 var HEIGHT_OFFSET = 90;
-var ONE_ROUND_TIME = 7200;
+var ONE_ROUND_TIME = 7200; // 7.2 sec per round
+var FALLING_SPEED = 1500;
 
 var Game = function() {
 	this.reset();
@@ -32,6 +33,12 @@ Game.prototype.resume = function() {
 	this.status = true;
 }
 
+Game.prototype.gameOver = function(type) {
+	console.log("gameover type: " + type);
+	console.log("score: " + this.score);
+	this.status = false;
+}
+
 Game.prototype.update = function(dt) {
 	this.map.update(dt);
 	this.bar.update(dt);
@@ -40,12 +47,6 @@ Game.prototype.update = function(dt) {
 		this.gameOver(TIMEOUT);
 	}
 };
-
-Game.prototype.gameOver = function(type) {
-	console.log("gameover type: " + type);
-	console.log("score: " + this.score);
-	this.status = false;
-}
 
 Game.prototype.render = function() {
 	this.renderBackground();
@@ -107,6 +108,23 @@ Map.prototype.render = function() {
 			ctx.fillRect(i*WIDTH, HEIGHT_OFFSET + j*WIDTH, WIDTH, WIDTH);
 		}
 	}
+}
+
+var FallingBrick = function(){
+
+    this.display = false;
+    this.x = 0;
+    this.y = 0;
+    this.color = [0,0];
+    this.col = -1;
+}
+
+FallingBrick.prototype.update = function(dt) {
+
+}
+
+FallingBrick.prototype.render = function() {
+
 }
 
 var Bar = function() {
