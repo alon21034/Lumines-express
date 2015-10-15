@@ -40,6 +40,10 @@ Game.prototype.gameOver = function(type) {
 	this.status = false;
 }
 
+Game.prototype.handleInput = function(k) {
+	this.map.handleInput(k);
+}
+
 Game.prototype.update = function(dt) {
 	this.map.update(dt);
 	this.bar.update(dt);
@@ -116,15 +120,61 @@ Map.prototype.onCollide = function() {
 	var a = this.getNextBrick();
 	this.fallingBricks[0].reset([a[0], a[1]], 5);
 	this.fallingBricks[1].reset([a[2], a[3]], 6);
+	this.fallingBrickNum = 2;
+
+	// update bricks which are going to be deleted
 }
 
 Map.prototype.onGameOver = function(type) {
 	this.game.gameOver(type);
 }
 
-Map.prototype.update = function() {
-	this.fallingBricks[0].update();
-	this.fallingBricks[1].update();
+Map.prototype.handleInput = function(keycode) {
+	if (this.fallingBrickNum == 2) {
+		console.log("map.handleInput" + keycode);
+		switch (keycode) {
+			case 37:
+				this.fallingBricks[0].move(0);
+				this.fallingBricks[1].move(0);
+			break;
+			case 38:
+				var t = this.fallingBricks[0].color[0];
+				this.fallingBricks[0].color[0] = this.fallingBricks[0].color[1];
+				this.fallingBricks[0].color[1] = this.fallingBricks[1].color[1];
+				this.fallingBricks[1].color[1] = this.fallingBricks[1].color[0];
+				this.fallingBricks[1].color[0] = t;
+			break;
+			case 39:
+				this.fallingBricks[0].move(1);
+				this.fallingBricks[1].move(1);
+			break;
+			case 40:
+				this.fallingBricks.down();
+			break;
+			case 32:
+				var t = this.fallingBricks[0].color[0];
+				this.fallingBricks[0].color[0] = this.fallingBricks[1].color[0];
+				this.fallingBricks[1].color[0] = this.fallingBricks[1].color[1];
+				this.fallingBricks[1].color[1] = this.fallingBricks[0].color[1];
+				this.fallingBricks[0].color[1] = t;
+			break;
+		}
+	}
+}
+
+Map.prototype.move = function(d) {
+	this.fallingBricks[0].move(d);
+	this.fallingBricks[1].move(d);
+}
+
+Map.prototype.rotate = function(d) {
+	// d == 0 : counterclockwise
+	this.col
+}
+
+Map.prototype.update = function(dt) {
+	this.fallingBricks[0].update(dt);
+	this.fallingBricks[1].update(dt);
 }
 
 Map.prototype.render = function() {
@@ -151,14 +201,14 @@ var FallingBrick = function(color, callback, map, x){
     this.y = 0;
     this.color = color;
     this.map = map;
-
+    this.timer = 0;
     this.collideListener = callback;
 }
 
 FallingBrick.prototype.reset = function(color, x) {
 	this.x = x;
 	this.y = 0;
-
+	this.timer = 0;
 }
 
 FallingBrick.prototype.checkCollisionWithMap = function() {
@@ -167,31 +217,32 @@ FallingBrick.prototype.checkCollisionWithMap = function() {
     }
 }
 
-FallingBrick.prototype.collide = function() {
-    this.map.fallingBrickNum -= 1;
-    if(map.colHeight[this.col] >= Board.ROW_NUM -1) {
+FallingBrick.prototype.down = function() {
+	this.map.fallingBrickNum -= 1;
+
+    this.map.height[this.col] += 2;
+        if(map.colHeight[this.col] >= Board.ROW_NUM -1) {
         map.onGameOver("dead");
+    } else {
+        this.map.grid[this.x][this.map.height[this.x]-1] = this.color[0];
+        this.map.grid[this.x][this.map.height[this.x]-2] = this.color[1];
     }
 
-    map.colHeight[this.col] = map.colHeight[this.col] + 2;
-    map.grid[this.col][map.colHeight[this.col]-2] = this.color[1]+1;
-    map.grid[this.col][map.colHeight[this.col]-1] = this.color[0]+1;
-    this.setMap();
+    this.map.onCollide();
+}
 
-    this.display = false;
-    this.x = -100;
-    this.y = -100;
-
-    map.clearTypeGrid();
-    map.updateTypeGrid();
-
-    if(map.fallingBrickNum === 0) {
-        brick.returnToStart();
-    }
+FallingBrick.prototype.move = function(d) {
+	// d == 0 : left
+	this.x += (d==0)? -1 : 1;
 }
 
 FallingBrick.prototype.update = function(dt) {
-	//this.y += dt/5000;
+	//console.log("fallingBricks.update" + dt);
+	this.timer += dt;
+	if (this.timer > 1000) {
+		this.y += 0.1;
+		this.timer -= 1000;
+	}
 }
 
 FallingBrick.prototype.render = function() {
@@ -201,12 +252,14 @@ FallingBrick.prototype.render = function() {
 		ctx.fillStyle = "#0000FF";
 	}
 	ctx.fillRect(this.x * WIDTH, this.y * WIDTH + HEIGHT_OFFSET, WIDTH, WIDTH);
+	ctx.strokeRect(this.x * WIDTH, this.y * WIDTH + HEIGHT_OFFSET, WIDTH, WIDTH);
 	if (this.color[1] == TYPE_RED) {
 		ctx.fillStyle = "#FF0000";
 	} else if (this.color[1] == TYPE_BLUE) {
 		ctx.fillStyle = "#0000FF";
 	}
 	ctx.fillRect(this.x * WIDTH, (this.y+1) * WIDTH + HEIGHT_OFFSET, WIDTH, WIDTH);
+	ctx.strokeRect(this.x * WIDTH, (this.y+1) * WIDTH + HEIGHT_OFFSET, WIDTH, WIDTH);
 }
 
 var Bar = function() {
