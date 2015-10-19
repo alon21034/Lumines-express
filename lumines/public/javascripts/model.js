@@ -1,6 +1,6 @@
 var WIDTH = 30;
 var COLUMN = 16;
-var RAW = 12;
+var ROW = 12;
 var TYPE_RED = 1;
 var TYPE_BLUE = 0;
 var TYPE_EMPTY = 2;
@@ -89,8 +89,8 @@ var Map = function(game) {
 	this.grid = new Array(COLUMN);
 	for (var i = 0 ; i < COLUMN ; ++i) {
 		this.height[i] = 0;
-		this.grid[i] = new Array(RAW);
-		for (var j = 0 ; j < RAW ; ++j) {
+		this.grid[i] = new Array(ROW);
+		for (var j = 0 ; j < ROW ; ++j) {
 			this.grid[i][j] = TYPE_EMPTY;
 		}
 	}
@@ -108,16 +108,27 @@ var Map = function(game) {
 }
 
 Map.prototype.getNextBrick = function() {
-	var ret = this.nextBrick.pop();
+	var ret = this.nextBrick[0];
 	for (var i = 0 ; i < 4 ; ++i) {
 		this.nextBrick[i] = this.nextBrick[i+1];
 	}
-	this.nextBrick.push([this.random.nextBool(), this.random.nextBool(), this.random.nextBool(), this.random.nextBool()]);
+	this.nextBrick[4] = ([this.random.nextBool(), this.random.nextBool(), this.random.nextBool(), this.random.nextBool()]);
 	return ret;
 }
 
 Map.prototype.onCollide = function() {
+
+	var x1 = this.fallingBricks[0].x;
+	this.grid[x1][this.height[x1] + 1] = this.fallingBricks[0].color[1];
+	this.grid[x1][this.height[x1] + 2] = this.fallingBricks[0].color[0];
+	this.grid[x1+1][this.height[x1+1] + 1] = this.fallingBricks[1].color[1];
+	this.grid[x1+1][this.height[x1+1] + 2] = this.fallingBricks[1].color[0];
+	this.height[x1]++;
+	this.height[x1+1]++;
+
+
 	var a = this.getNextBrick();
+
 	this.fallingBricks[0].reset([a[0], a[1]], 5);
 	this.fallingBricks[1].reset([a[2], a[3]], 6);
 	this.fallingBrickNum = 2;
@@ -149,7 +160,8 @@ Map.prototype.handleInput = function(keycode) {
 				this.fallingBricks[1].move(1);
 			break;
 			case 40:
-				this.fallingBricks.down();
+				this.fallingBricks[0].down();
+				this.fallingBricks[1].down();
 			break;
 			case 32:
 				var t = this.fallingBricks[0].color[0];
@@ -168,8 +180,7 @@ Map.prototype.move = function(d) {
 }
 
 Map.prototype.rotate = function(d) {
-	// d == 0 : counterclockwise
-	this.col
+	
 }
 
 Map.prototype.update = function(dt) {
@@ -179,7 +190,7 @@ Map.prototype.update = function(dt) {
 
 Map.prototype.render = function() {
 	for (var i = 0 ; i < COLUMN ; ++i) {
-		for (var j = 0 ; j < RAW ; ++j) {
+		for (var j = 0 ; j < ROW ; ++j) {
 			if (this.grid[i][j] == TYPE_RED) {
 				ctx.fillStyle = "#FF0000";
 			} else if (this.grid[i][j] == TYPE_BLUE) {
@@ -187,7 +198,7 @@ Map.prototype.render = function() {
 			} else {
 				ctx.fillStyle = "#888888";
 			}
-			ctx.fillRect(i*WIDTH, HEIGHT_OFFSET + j*WIDTH, WIDTH, WIDTH);
+			ctx.fillRect(i*WIDTH, HEIGHT_OFFSET + (ROW - j)*WIDTH, WIDTH, WIDTH);
 		}
 	}
 	this.fallingBricks[0].render();
@@ -212,7 +223,7 @@ FallingBrick.prototype.reset = function(color, x) {
 }
 
 FallingBrick.prototype.checkCollisionWithMap = function() {
-    if ( 2 + map.colHeight[this.col] >= RAW) {
+    if ( 2 + map.height[this.col] >= ROW) {
         this.collide();
     }
 }
@@ -221,7 +232,7 @@ FallingBrick.prototype.down = function() {
 	this.map.fallingBrickNum -= 1;
 
     this.map.height[this.col] += 2;
-        if(map.colHeight[this.col] >= Board.ROW_NUM -1) {
+        if(this.map.height[this.col] >= ROW -1) {
         map.onGameOver("dead");
     } else {
         this.map.grid[this.x][this.map.height[this.x]-1] = this.color[0];
@@ -275,5 +286,5 @@ Bar.prototype.update = function(dt) {
 
 Bar.prototype.render = function() {
 	ctx.fillStyle = "#000000";
-	ctx.fillRect(this.x-1, HEIGHT_OFFSET, 2, WIDTH*RAW);
+	ctx.fillRect(this.x-1, HEIGHT_OFFSET, 2, WIDTH*ROW);
 }
